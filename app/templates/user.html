@@ -37,5 +37,9 @@
                     </form>
                 {% endif %}
 </div>
+{% for post in posts %}
+        {% include '_post.html' %}
+    {% endfor %}
+
 
 {% endblock %}
