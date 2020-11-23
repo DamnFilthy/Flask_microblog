@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Режим Редактирования статьи</h1>
+<form action="" method="post">
+    {{ edit_form.hidden_tag() }}
+    <p>
+        {{ edit_form.title_post.label }} <br>
+        {{ edit_form.title_post(cols=60, rows=5) }} <br>
+    </p>
+    <p>
+        {{ edit_form.body_post.label }} <br>
+        {{ edit_form.body_post(cols=60, rows=30) }} <br>
+    </p>
+    <p>{{ edit_form.save() }}</p>
+</form>
+{% endblock %}

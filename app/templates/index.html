@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Поделитесь новостями с друзьями</h1>
+<h3>Ваш Блог</h3>
+<div class="new_post">
+{% if form%}
+<form class="form_post" action="" method="post">
+   {{ form.hidden_tag() }}
+        <p class="hello">Привет, {{ current_user.username }}</p>
+        <p class="hello">Чем хотите поделиться?</p>
+        <p class="hello">Заголовок: 60 символов</p>
+        <p class="hello">Текст: 2900 символов</p>
+
+        <p class="post">{{ form.title.label }}</p>
+        {{ form.title(cols=30, rows=4) }}
+
+        <p class="post">{{ form.post.label  }}</p><br>
+        {{ form.post(cols=30, rows=10) }}
+
+            {% for error in form.post.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+
+    <br> <button class="register">{{ form.submit }}</button>
+</form>
+    </div>
+<div class="main">
+{% endif %}
+
+        <p class="wall">
+        {% for post in posts %}
+            {% include '_post.html' %}
+        {% endfor %}
+        </p>
+
+    {% if prev_url %}
+        <a class="next" href="{{ prev_url }}">Back</a>
+    {% endif %}
+
+    {% if next_url %}
+         <a class="next" href="{{ next_url }}">Next Page</a>
+    {% endif %}
+</div>
+{% endblock %}

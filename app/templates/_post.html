@@ -1,0 +1,18 @@
+<div class="main_post">
+        {% if post.author.photo %}
+        <td><img class="avatar_post" src="{{ post.author.photo }}" width="60" height="70" alt=""></td>
+        {% else %}
+        <td><img src="{{ post.author.avatar(36) }}"></td>
+        {% endif %}
+
+
+            <a class="user_name" href="{{url_for('user', username=post.author.username) }}">
+                {{ post.author.username }} </a>
+                   <p class="article_title">{{ post.title }}</p>
+            Опубликовано: {{ moment(post.timestamp).fromNow() }} : {{ moment(post.timestamp).format('LLLL') }}
+            <br><a class="show_full" href="{{url_for('post_detail', id = post.id) }}">Показать полностью</a>
+    <br><br><br>
+
+</div>
+
+

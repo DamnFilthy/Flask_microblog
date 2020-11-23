@@ -1,0 +1,8 @@
+/Include
+/Lib
+/Scripts
+/.idea
+/__pycache__
+/logs
+/migrations
+app.bd

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="profile_block">
+
+
+        {% if user.photo %}
+<img src="{{ user.photo }}" width="100" height="111" alt="">
+        {% else %}
+<img src="{{ user.avatar(128) }}" alt="">
+        {% endif %}
+
+            <h1>User: {{user.username }}</h1>
+            {% if user != current_user %}
+            <p>
+                <a href="{{ url_for('main.send_message',
+                                    recipient=user.username) }}">
+                    {{ _('Send private message') }}
+                </a>
+            </p>
+            {% endif %}
+            {% if user.about_me %} <p> {{ user.about_me }}</p> {% endif %}
+            {% if user.last_seen %} <p> Был в сети: {{ moment(user.last_seen).format('LLLL') }}</p> {% endif %}
+            <p>{{ user.followers.count() }} followers, {{ user.followed.count() }} following.</p>
+            {% if user == current_user %}
+            <p><a href="{{ url_for('edit_profile') }}">Edit Profile</a></p>
+            <p><a href="{{ url_for('change_avatar') }}">Change Avatar</a></p>
+                {% elif not current_user.is_following(user) %}
+                    <form action="{{ url_for('follow', username=user.username) }}" method="post">
+                        {{ form.hidden_tag() }}
+                        {{ form.submit(value='Подписаться') }}
+                    </form>
+                {% else %}
+                    <form action="{{ url_for('unfollow', username=user.username) }}" method="post">
+                        {{ form.hidden_tag() }}
+                        {{ form.submit(value='Отписка') }}
+                    </form>
+                {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,87 @@
+<html>
+    <head>
+        {{ moment.include_jquery() }}
+        {{ moment.include_moment() }}
+        {{ moment.locale(auto_detect=True)}}
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Alice&family=Lobster&family=Old+Standard+TT&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+        {% if title %}
+        <title>{{ title }} - Microblog</title>
+        {% else %}
+        <title>Welcome to Microblog</title>
+        {% endif %}
+    </head>
+   <body>
+
+           <div class="header">
+               <a href="/index" class="index">Talkative BuTTerfly</a>
+                <nav>
+                  {% if current_user.is_anonymous %}
+                <a class="menu" href="{{ url_for('login') }}">Login</a>
+                  {% else %}
+
+                         <a href="{{ url_for('messages') }}">
+                        {{ Messages }}
+                        {% set new_messages = current_user.new_messages() %}
+                        <span id="message_count" class="badge"
+                              style="visibility: {% if new_messages %}visible
+                                                 {% else %}hidden {% endif %};">
+                            {{ new_messages }}
+                        </span>
+                    </a>
+
+                  <a class="menu" href="{{ url_for('logout') }}">Logout</a>
+                  {% endif %}
+                    <a class="menu" href="{{ url_for('user', username=current_user.username) }}">Profile</a>
+                    <a class="menu" href="{{ url_for('index') }}">Home</a>
+                    <a class="menu" href="{{ url_for('explore') }}">Explore</a>
+                    </nav>
+                 </div>
+<div class="left">
+
+</div>
+<div class="wrapper">
+<div class="content">
+    {% block content %}
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <ul>
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% endwith %}
+
+    {% endblock %}
+        </div>
+
+
+
+</div>
+         {% block scripts %}
+    <script>
+        // ...
+        {% if current_user.is_authenticated %}
+        $(function() {
+            var since = 0;
+            setInterval(function() {
+                $.ajax('{{ url_for('notifications') }}?since=' + since).done(
+                    function(notifications) {
+                        for (var i = 0; i < notifications.length; i++) {
+                            if (notifications[i].name == 'unread_message_count')
+                                set_message_count(notifications[i].data);
+                            since = notifications[i].timestamp;
+                        }
+                    }
+                );
+            }, 10000);
+        });
+        {% endif %}
+    </script>
+{% endblock %}
+   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  </body>
+</html>
