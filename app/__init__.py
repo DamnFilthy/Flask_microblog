@@ -16,36 +16,36 @@ from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 
 # Инициализируем приложение
-app = Flask(__name__)
-app.config.from_object(Config)
+application = Flask(__name__)
+application.config.from_object(Config)
 # Создаем экземпляр почты
-mail = Mail(app)
+mail = Mail(application)
 # Создаем экземпляр логина
-login = LoginManager(app)
+login = LoginManager(application)
 login.login_view = 'login'
 # Подключаем базу данных
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+db = SQLAlchemy(application)
+migrate = Migrate(application, db)
 # Подключаем bootstrap
-bootstrap = Bootstrap(app)
+bootstrap = Bootstrap(application)
 # Настраиваем дату и время
-moment = Moment(app)
+moment = Moment(application)
 
-if not app.debug:
-    if app.config['MAIL_SERVER']:
+if not application.debug:
+    if application.config['MAIL_SERVER']:
         auth = None
-        if app.config['MAIL_USERNAME'] or app.config['MAIL_PASSWORD']:
-            auth = (app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD'])
+        if application.config['MAIL_USERNAME'] or application.config['MAIL_PASSWORD']:
+            auth = (application.config['MAIL_USERNAME'], application.config['MAIL_PASSWORD'])
         secure = None
-        if app.config['MAIL_USE_TLS']:
+        if application.config['MAIL_USE_TLS']:
             secure = ()
         mail_handler = SMTPHandler(
-            mailhost=(app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
-            fromaddr='no-reply@' + app.config['MAIL_SERVER'],
-            toaddrs=app.config['ADMINS'], subject='Microblog Failure',
+            mailhost=(application.config['MAIL_SERVER'], application.config['MAIL_PORT']),
+            fromaddr='no-reply@' + application.config['MAIL_SERVER'],
+            toaddrs=application.config['ADMINS'], subject='Microblog Failure',
             credentials=auth, secure=secure)
         mail_handler.setLevel(logging.ERROR)
-        app.logger.addHandler(mail_handler)
+        application.logger.addHandler(mail_handler)
 
     if not os.path.exists('logs'):
         os.mkdir('logs')
@@ -54,10 +54,10 @@ if not app.debug:
     file_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
     file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(file_handler)
+    application.logger.addHandler(file_handler)
 
-    app.logger.setLevel(logging.INFO)
-    app.logger.info('Microblog startup')
+    application.logger.setLevel(logging.INFO)
+    application.logger.info('Microblog startup')
 
 """
 модуль routes импортируется внизу, а не наверху скрипта,

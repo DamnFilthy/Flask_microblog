@@ -10,7 +10,7 @@ routes — это разные URL-адреса, которые приложен
 from flask import render_template, flash, redirect, url_for, request, jsonify, g, current_app
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
-from app import app, db
+from app import application, db
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, ChangeAvatarForm, EmptyForm, PostForm, \
     PostFormDelete, EditPostForm, ResetPasswordRequestForm, ResetPasswordForm, MessageForm
 from app.models import User, Post, Message, Notification
@@ -21,8 +21,7 @@ import moment
 import json
 
 
-
-@app.before_request
+@application.before_request
 def before_request():
     if current_user.is_authenticated:
         current_user.last_seen = datetime.utcnow()
@@ -30,7 +29,7 @@ def before_request():
 
 
 # Отправка сообщений
-@app.route('/send_message/<recipient>', methods=['GET', 'POST'])
+@application.route('/send_message/<recipient>', methods=['GET', 'POST'])
 @login_required
 def send_message(recipient):
     user = User.query.filter_by(username=recipient).first_or_404()
@@ -48,7 +47,7 @@ def send_message(recipient):
 
 
 # Просмотр сообщений
-@app.route('/messages')
+@application.route('/messages')
 @login_required
 def messages():
     current_user.last_message_read_time = datetime.utcnow()
@@ -57,7 +56,7 @@ def messages():
     page = request.args.get('page', 1, type=int)
     messages = current_user.messages_received.order_by(
         Message.timestamp.desc()).paginate(
-        page, current_app.config['POSTS_PER_PAGE'], False)
+        page, current_application.config['POSTS_PER_PAGE'], False)
     next_url = url_for('main.messages', page=messages.next_num) \
         if messages.has_next else None
     prev_url = url_for('main.messages', page=messages.prev_num) \
@@ -66,7 +65,7 @@ def messages():
                            next_url=next_url, prev_url=prev_url)
 
 
-@app.route('/notifications')
+@application.route('/notifications')
 @login_required
 def notifications():
     since = request.args.get('since', 0.0, type=float)
@@ -79,8 +78,8 @@ def notifications():
     } for n in notifications])
 
 
-@app.route('/', methods=['GET', 'POST'])
-@app.route('/index', methods=['GET', 'POST'])
+@application.route('/', methods=['GET', 'POST'])
+@application.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
     form = PostForm()
@@ -95,7 +94,7 @@ def index():
             flash('Слишком много букаф!')
     page = request.args.get('page', 1, type=int)
     posts = current_user.followed_posts().paginate(
-        page, app.config['POSTS_PER_PAGE'], False)
+        page, application.config['POSTS_PER_PAGE'], False)
     next_url = url_for('index', page=posts.next_num) \
         if posts.has_next else None
     prev_url = url_for('index', page=posts.prev_num) \
@@ -105,12 +104,12 @@ def index():
                            prev_url=prev_url)
 
 
-@app.route('/explore')
+@application.route('/explore')
 @login_required
 def explore():
     page = request.args.get('page', 1, type=int)
     posts = Post.query.order_by(Post.timestamp.desc()).paginate(
-        page, app.config['POSTS_PER_PAGE'], False)
+        page, application.config['POSTS_PER_PAGE'], False)
     next_url = url_for('explore', page=posts.next_num) \
         if posts.has_next else None
     prev_url = url_for('explore', page=posts.prev_num) \
@@ -119,7 +118,7 @@ def explore():
                            next_url=next_url, prev_url=prev_url)
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@application.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
@@ -137,13 +136,13 @@ def login():
     return render_template('login.html', title='Sign In', form=form)
 
 
-@app.route('/logout')
+@application.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('index'))
 
 
-@app.route('/register', methods=['GET', 'POST'])
+@application.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
@@ -162,14 +161,14 @@ def register():
     return render_template('register.html', title='Register', form=form)
 
 
-@app.route('/user/<username>')
+@application.route('/user/<username>')
 @login_required
 def user(username):
     form = EmptyForm()
     user = User.query.filter_by(username=username).first_or_404()
     page = request.args.get('page', 1, type=int)
     posts = user.posts.order_by(Post.timestamp.desc()).paginate(
-        page, app.config['POSTS_PER_PAGE'], False)
+        page, application.config['POSTS_PER_PAGE'], False)
     next_url = url_for('user', username=user.username, page=posts.next_num) \
         if posts.has_next else None
     prev_url = url_for('user', username=user.username, page=posts.prev_num) \
@@ -178,7 +177,7 @@ def user(username):
                            next_url=next_url, prev_url=prev_url)
 
 
-@app.route('/edit_profile', methods=['GET', 'POST'])
+@application.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
     form = EditProfileForm(current_user.username)
@@ -194,7 +193,7 @@ def edit_profile():
     return render_template('edit_profile.html', title='Edit Profile', form=form)
 
 
-@app.route('/change_avatar', methods=['GET', 'POST'])
+@application.route('/change_avatar', methods=['GET', 'POST'])
 @login_required
 def change_avatar():
     form = ChangeAvatarForm()
@@ -206,8 +205,8 @@ def change_avatar():
 
 
 # Читать полностью
-@app.route('/article')
-@app.route('/article/<int:id>')
+@application.route('/article')
+@application.route('/article/<int:id>')
 @login_required
 def post_detail(id):
     form = PostForm()
@@ -218,8 +217,8 @@ def post_detail(id):
 
 
 # Редактировать пост
-@app.route('/edit_post', methods=['GET', 'POST'])
-@app.route('/edit_post/<int:id>', methods=['GET', 'POST'])
+@application.route('/edit_post', methods=['GET', 'POST'])
+@application.route('/edit_post/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_post(id):
     form = PostForm()
@@ -245,8 +244,8 @@ def edit_post(id):
 
 
 # Удалить пост
-@app.route('/article', methods=['GET', 'POST'])
-@app.route('/article/<int:id>', methods=['GET', 'POST'])
+@application.route('/article', methods=['GET', 'POST'])
+@application.route('/article/<int:id>', methods=['GET', 'POST'])
 @login_required
 def post_delete(id):
     form = PostForm()
@@ -266,7 +265,7 @@ def post_delete(id):
                            form=form)
 
 
-@app.route('/follow/<username>', methods=['POST'])
+@application.route('/follow/<username>', methods=['POST'])
 @login_required
 def follow(username):
     form = EmptyForm()
@@ -286,7 +285,7 @@ def follow(username):
         return redirect(url_for('index'))
 
 
-@app.route('/unfollow/<username>', methods=['POST'])
+@application.route('/unfollow/<username>', methods=['POST'])
 @login_required
 def unfollow(username):
     form = EmptyForm()
@@ -307,7 +306,7 @@ def unfollow(username):
 
 
 # Обработка сброса пароля
-@app.route('/reset_password_request', methods=['GET', 'POST'])
+@application.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
@@ -322,7 +321,7 @@ def reset_password_request():
                            title='Reset Password', form=form)
 
 
-@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+@application.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     if current_user.is_authenticated:
         return redirect(url_for('index'))
